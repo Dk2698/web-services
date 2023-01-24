@@ -1,13 +1,18 @@
 package com.kumar.restwebservices.restfulwebservices.controllers;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 import com.kumar.restwebservices.restfulwebservices.beans.User;
 import com.kumar.restwebservices.restfulwebservices.dao.UserDaoService;
 import com.kumar.restwebservices.restfulwebservices.exceptions.UserNotFoundException;
 import jakarta.validation.Valid;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.List;
 
@@ -59,4 +64,21 @@ public class UserController {
 //        }
     }
 
+    // http://localhost:8080/users
+    //EntityModel
+    //WebMvcLinkBuilder
+    @GetMapping("/v2/{id}")
+    public EntityModel<User> retrieveUser(@PathVariable int id){
+        User user = service.findOne(id);
+
+        if(user == null){
+            throw  new UserNotFoundException("id:"+id);
+        }
+        EntityModel<User> entityModel = EntityModel.of(user);
+        // builder link
+        WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).retrieveAllUsers());
+        entityModel.add(link.withRel("all-users"));
+
+        return  entityModel;
+    }
 }
